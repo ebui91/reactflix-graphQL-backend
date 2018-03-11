@@ -33,6 +33,41 @@ Search Results:
 Variables in GraphQL were defined in our `schema.js` file, so using GraphiQL, we can send the `searchResults` query with dynamic variables that would be attached to user input on the front-end. 
 
 
+### Setting Variables ###
+Here are the ranges for the variables if you wish to experiment with different queries with `searchResults`.
+- Genres must be referred to by their ID for queries.
+```
+    genres: [
+        { id: 28, name: "Action" },
+        { id: 12, name: "Adventure" },
+        { id: 16, name: "Animation" },
+        { id: 35, name: "Comedy" },
+        { id: 80, name: "Crime" },
+        { id: 99, name: "Documentary" },
+        { id: 18, name: "Drama" },
+        { id: 10751, name: "Family" },
+        { id: 14, name: "Fantasy" },
+        { id: 36, name: "History" },
+        { id: 27, name: "Horror" },
+        { id: 10402, name: "Music" },
+        { id: 9648, name: "Mystery" },
+        { id: 10749, name: "Romance" },
+        { id: 878, name: "Science Fiction" },
+        { id: 10770, name: "TV Movie" },
+        { id: 53, name: "Thriller" },
+        { id: 10752, name: "War" },
+        { id: 37, name: "Western" }
+    ]
+```
+- `yearMin`: 1960-2017
+- `yearMax`: 1961-2018
+- `ratingMin`: 0-9
+- `ratingMax`: 1-10
+- `runtimeMin`: 0-199 (minutes)
+- `runtimeMax`: 1-200 (minutes)
+- `page`: Variable depending on how many results there are. Each page contains 20 results.
+
+
 ### Conclusion ###
 So in this project, we created a schema for our GraphQL backend. We defined a `MovieType`, which is a GraphQL object that contains all of the information that Reactflix needs. We then defined a `RootQuery` with two queries: `movies` and `searchResults`. This fulfills all of the requirements that Reactflix needs on the backend. The next step will be to implement GraphQL on the front end and set it up so that our endpoints go through GraphQL to be processed by this backend. That'll be for another day though. I hope to upload a YouTube tutorial of this project soon, so I'll drop the link once I've finished recording. Thanks for checking out this project!
 
