@@ -1,4 +1,6 @@
-const axios= require('axios');
+require("dotenv").config();
+const axios = require('axios');
+
 const {
     GraphQLObjectType,
     GraphQLString,
@@ -6,107 +8,61 @@ const {
     GraphQLSchema,
     GraphQLList,
     GraphQLNonNull
-}= require('graphql');
+} = require('graphql');
 
 
-// Hard-coded Data to test queries
-// const customers= [
-//     {id: '1', name: 'Eric Bui', email: 'ericbui2@gmail.com', age: 26},
-//     {id: '2', name: 'John Doe', email: 'johndoe@gmail.com', age: 45},
-//     {id: '3', name: 'Sarah Smith', email: 'sarahs@gmail.com', age: 16}
-// ]
-
-// Customer Type
-const CustomerType= new GraphQLObjectType({
-    name: 'Customer',
-    fields: ()=> ({
-        id: {type: GraphQLString},
-        name: {type: GraphQLString},
-        email: {type: GraphQLString},
-        age: {type: GraphQLInt}
+// Defining the Movie object type.
+const MovieType = new GraphQLObjectType({
+    name: 'Movie',
+    fields: () => ({
+        id: { type: GraphQLInt },
+        title: { type: GraphQLString },
+        vote_average: { type: GraphQLString },
+        overview: { type: GraphQLString }
     })
 });
 
-// Root Query
-const RootQuery= new GraphQLObjectType({
+
+// Root Query. Contains API request for currently playing movies and movies from search result parameters.
+const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
     fields: {
-        customer: {
-            type: CustomerType,
-            args: {
-                id: {type: GraphQLString}
-            },
-            resolve(parentValue, args){
-                // for(let i=0; i<customers.length; i++){
-                //     if(customers[i].id === args.id){
-                //         return customers[i];
-                //     }
-                // }
-                return axios.get(`http://localhost:3000/customers/${args.id}`)
-                    .then(res=> res.data);
+        movies: {
+            type: new GraphQLList(MovieType),
+            resolve(parentValue, args) {
+                return axios.get(`${process.env.API_URL}?api_key=${process.env.API_KEY}`)
+                    .then(res => res.data.results);
             }
         },
-        customers: {
-            type: new GraphQLList(CustomerType),
-            resolve(parentValue, args){
-                // For hard-coded data
-                // return customers; 
-                return axios.get('http://localhost:3000/customers')
-                    .then(res=> res.data);
+        searchResults: {
+            type: new GraphQLList(MovieType),
+            args: {
+                genre: { type: GraphQLInt },
+                yearMin: { type: GraphQLInt },
+                yearMax: { type: GraphQLInt },
+                ratingMin: { type: GraphQLInt },
+                ratingMax: { type: GraphQLInt },
+                runtimeMin: { type: GraphQLInt },
+                runtimeMax: { type: GraphQLInt },
+                page: { type: GraphQLInt }
+            },
+            resolve(parentValue, args) {
+                return axios.get(`https://api.themoviedb.org/3/discover/movie?api_key=${process.env.API_KEY}`
+                    + `&certification_country=US&sort_by=popularity.desc`
+                    + `&with_genres=${args.genre}`
+                    + `&primary_release_date.gte=${args.yearMin}-01-01&primary_release_date.lte=${args.yearMax}-12-31`
+                    + `&vote_average.gte=${args.ratingMin}`
+                    + `&vote_average.lte=${args.ratingMax}`
+                    + `&with_runtime.gte=${args.runtimeMin}`
+                    + `&with_runtime.lte=${args.runtimeMax}`
+                    + `&page=${args.page}`)
+                        .then(res => res.data.results);
             }
         }
     }
 });
 
 
-// Mutations
-const mutation= new GraphQLObjectType({
-    name: 'Mutation',
-    fields: {
-        addCustomer: {
-            type: CustomerType,
-            args: {
-                name: {type: new GraphQLNonNull(GraphQLString)},
-                email: {type: new GraphQLNonNull(GraphQLString)},
-                age: {type: new GraphQLNonNull(GraphQLInt)},
-            },
-            resolve(parentValue, args){
-                return axios.post('http://localhost:3000/customers', {
-                    name: args.name,
-                    email: args.email,
-                    age: args.age
-                })
-                .then(res=> res.data);
-            }
-        },
-        deleteCustomer: {
-            type: CustomerType,
-            args: {
-                id: {type: new GraphQLNonNull(GraphQLString)}
-            },
-            resolve(parentValue, args){
-                return axios.delete(`http://localhost:3000/customers/${args.id}`)
-                .then(res=> res.data);
-            }
-        },
-        editCustomer: {
-            type: CustomerType,
-            args: {
-                id: {type: new GraphQLNonNull(GraphQLString)},
-                name: {type: GraphQLString},
-                email: {type: GraphQLString},
-                age: {type: GraphQLInt}
-            },
-            resolve(parentValue, args){
-                return axios.patch(`http://localhost:3000/customers/${args.id}`, args)
-                .then(res=> res.data);
-            }
-        }
-    }
-})
-
-
 module.exports= new GraphQLSchema({
-    query: RootQuery,
-    mutation
+    query: RootQuery
 });
